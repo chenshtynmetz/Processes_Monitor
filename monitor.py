@@ -15,17 +15,14 @@ class Monitor:
 
 # this function monitor the active processes and write them to file
     def monitoring(self):
-        # if self.system == "Windows":
+        if self.system == "Windows":
             curr_proc = ""
             while True:
                 if self.flag == 0:
                     return
                 curr_time = "\n" + str(datetime.now()) + "\n"
                 prev_proc = curr_proc
-                if self.system == "Windows":
-                    curr_proc = os.popen("tasklist").read()
-                if self.system == "Linux":
-                    curr_proc = os.popen("ps aux").read()
+                curr_proc = os.popen("tasklist").read()
                 self.compare(curr_proc, prev_proc, curr_time)
                 with open(self.serviceList, "a") as file:
                     file.write(curr_time)
@@ -33,8 +30,21 @@ class Monitor:
                 # print(curr_time)
                 # print(curr_proc)
                 time.sleep(float(self.my_time))
-        # if self.system == "Linux":
-        #     pass
+        if self.system == "Linux":  # todo: change this that fit to linux
+            curr_proc = ""
+            while True:
+                if self.flag == 0:
+                    return
+                curr_time = "\n" + str(datetime.now()) + "\n"
+                prev_proc = curr_proc
+                curr_proc = os.popen("ps aux").read()
+                self.compare(curr_proc, prev_proc, curr_time)
+                with open(self.serviceList, "a") as file:
+                    file.write(curr_time)
+                    file.write(curr_proc)
+                # print(curr_time)
+                # print(curr_proc)
+                time.sleep(float(self.my_time))
 
 # this function check if something changes
     def compare(self, curr, prev, curr_time):
@@ -43,7 +53,7 @@ class Monitor:
         prev_id_list = [1, 1, 1]
         curr_id_list = [1, 1, 1]
         for i in range(3, len(prev_list)):  # get process by ID
-            prev_id_list.append(prev_list[i][26:33])  # todo: check if pid is the id of the process
+            prev_id_list.append(prev_list[i][26:33])
         for i in range(3, len(curr_list)):
             curr_id_list.append(curr_list[i][26:33])  # get process by ID
         with open(self.status_log, "a") as file:  # write the differences between the files
