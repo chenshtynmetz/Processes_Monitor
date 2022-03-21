@@ -5,8 +5,8 @@ from datetime import datetime
 
 
 class Monitor:
-    def __init__(self):
-        self.my_time = input("please enter period of time in seconds:")
+    def __init__(self, my_time):
+        self.my_time = my_time
         self.system = platform.system()
         self.serviceList = "serviceList.txt"
         self.status_log = "Status_Log.txt"
