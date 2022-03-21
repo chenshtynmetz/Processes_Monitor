@@ -1,5 +1,12 @@
 import platform
 
+INDEX_SECONDS = 17
+PID_START_W = 26
+PID_END_W = 33
+PID_START_L = 8
+PID_END_L = 16
+
+
 class Manual:
     def __init__(self, time1, time2, my_time):
         self.time1 = time1
@@ -10,13 +17,61 @@ class Manual:
         self.monitoring()
 
     def monitoring(self):
-        first_index = -1
-        second_index = -1
+        seconds1 = int(self.time1[INDEX_SECONDS:INDEX_SECONDS + 2])  # only the "seconds" part in the time
+        seconds2 = int(self.time2[INDEX_SECONDS:INDEX_SECONDS + 2])
         with open(self.serviceList, "r") as f:
             lines = f.readlines()
-        for i in range(len(lines)):
-            if lines[i] == self.time1:
-                first_index = i
-            if lines[i] == self.time2:
-                second_index = i
+        first_index_start = self.find_index(seconds1, lines)
+        second_index_start = self.find_index(seconds2, lines)
+        if first_index_start == -1 or second_index_start == -1:
+            print("can't find time")
+            return
+        first_index_end = lines.index("~", first_index_start)  # todo:add "~" at the end of every process list
+        second_index_end = lines.index("~", second_index_start)
+        first_list = lines[first_index_start + 1:first_index_end]  # take only the relevant lines from the list
+        second_list = lines[second_index_start + 1:second_index_end]
+        self.compare(second_list, first_list, self.time1 + " -> " + self.time2)
 
+    # find the index of the relevant time in the list
+    def find_index(self, seconds, lines):
+        if seconds + self.my_time < 60:  # round up
+            for i in range(len(lines)):
+                curr_sec = int(lines[i][INDEX_SECONDS:INDEX_SECONDS + 2])
+                if lines[i][:INDEX_SECONDS] == self.time1[
+                                               :INDEX_SECONDS] and seconds + self.my_time >= curr_sec >= seconds:
+                    return i
+        elif seconds - self.my_time >= 0:  # round down
+            for i in range(len(lines)):
+                curr_sec = int(lines[i][INDEX_SECONDS:INDEX_SECONDS + 2])
+                if lines[i][:INDEX_SECONDS] == self.time1[
+                                               :INDEX_SECONDS] and seconds - self.my_time <= curr_sec <= seconds:
+                    return i
+        # todo:check if it works without the else
+        else:  # the rounding didn't work
+            for i in range(len(lines)):
+                curr_sec = int(lines[i][INDEX_SECONDS:INDEX_SECONDS + 2])
+                if lines[i][:INDEX_SECONDS] == self.time1[:INDEX_SECONDS]:
+                    return i
+        return -1
+
+    # this function check if something changes
+    def compare(self, curr_list, prev_list, curr_time):
+        prev_id_list = [1, 1, 1]
+        curr_id_list = [1, 1, 1]
+        if self.system == "Windows":
+            for i in range(3, len(prev_list)):  # get process by ID
+                prev_id_list.append(prev_list[i][PID_START_W:PID_END_W])
+            for i in range(3, len(curr_list)):
+                curr_id_list.append(curr_list[i][PID_START_W:PID_END_W])  # get process by ID
+        elif self.system == "Linux":
+            for i in range(3, len(prev_list)):  # get process by ID
+                prev_id_list.append(prev_list[i][PID_START_L:PID_END_L])
+            for i in range(3, len(curr_list)):
+                curr_id_list.append(curr_list[i][PID_START_L:PID_END_L])  # get process by ID
+        print('\n' + curr_time + '\n')
+        for i in range(3, len(prev_list)):
+            if prev_id_list[i] not in curr_id_list:
+                print("stopped:" + '\t' + prev_list[i] + '\n')
+        for i in range(3, len(curr_list)):
+            if curr_id_list[i] not in prev_id_list:
+                print("started:" + '\t' + curr_list[i] + '\n')
