@@ -13,28 +13,26 @@ class Monitor:
         self.flag = 1
         self.monitoring()
 
-# this function monitor the active processes and write them to file
+    # this function monitor the active processes and write them to file
     def monitoring(self):
         curr_proc = ""
-        while True:
-            if self.flag == 0:
-                return
-            curr_time = "\n" + str(datetime.now()) + "\n"
-            prev_proc = curr_proc
-            if self.system == "Windows":
-                curr_proc = os.popen("tasklist").read()
-            elif self.system == "Linux":
-                curr_proc = os.popen("ps aux").read()
-            self.compare(curr_proc, prev_proc, curr_time)
-            with open(self.serviceList, "a") as file:
+        with open(self.serviceList, "a") as file:
+            while True:
+                if self.flag == 0:
+                    return
+                curr_time = "\n$" + str(datetime.now()) + "\n"
+                prev_proc = curr_proc
+                if self.system == "Windows":
+                    curr_proc = os.popen("tasklist").read()
+                elif self.system == "Linux":
+                    curr_proc = os.popen("ps aux").read()
+                self.compare(curr_proc, prev_proc, curr_time)
                 file.write(curr_time)
                 file.write(curr_proc)
-            # print(curr_time)
-            # print(curr_proc)
-            time.sleep(float(self.my_time))
+                file.write("~\n")
+                time.sleep(float(self.my_time))
 
-
-# this function check if something changes
+    # this function check if something changes
     def compare(self, curr, prev, curr_time):
         prev_list = prev.split('\n')  # split the process list by lines
         curr_list = curr.split('\n')
