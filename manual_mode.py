@@ -16,30 +16,35 @@ class Manual:
         self.my_time = my_time
         self.system = platform.system()
         self.serviceList = "serviceList.txt"
-        self.monitoring()
 
     def monitoring(self):
-        seconds1 = int(self.time1[INDEX_SECONDS:INDEX_SECONDS + 2]) + int(self.time1[INDEX_MIN:INDEX_MIN + 2] * 60) + int(self.time1[INDEX_HOURS:INDEX_HOURS + 2] * 3600)  # get the time in seconds
-        seconds2 = int(self.time2[INDEX_SECONDS:INDEX_SECONDS + 2]) + int(self.time2[INDEX_MIN:INDEX_MIN + 2] * 60) + int(self.time2[INDEX_HOURS:INDEX_HOURS + 2] * 3600)
+        seconds1 = int(self.time1[INDEX_SECONDS:INDEX_SECONDS + 2]) + int(self.time1[INDEX_MIN:INDEX_MIN + 2]) * 60 + int(self.time1[INDEX_HOURS:INDEX_HOURS + 2]) * 3600  # get the time in seconds
+        seconds2 = int(self.time2[INDEX_SECONDS:INDEX_SECONDS + 2]) + int(self.time2[INDEX_MIN:INDEX_MIN + 2]) * 60 + int(self.time2[INDEX_HOURS:INDEX_HOURS + 2]) * 3600
         with open(self.serviceList, "r") as f:
             lines = f.readlines()
-        first_index_start = self.find_index(seconds1, lines)
-        second_index_start = self.find_index(seconds2, lines)
+        # print(lines)
+        first_index_start = self.find_index(seconds1, lines, self.time1)
+        second_index_start = self.find_index(seconds2, lines, self.time2)
+        # print(lines[first_index_start])
+        # print(lines[second_index_start])
         if first_index_start == -1 or second_index_start == -1:
             print("can't find time")
             return
-        first_index_end = lines.index("~", first_index_start)
-        second_index_end = lines.index("~", second_index_start)
+        first_index_end = lines.index("~\n", first_index_start)
+        try:
+            second_index_end = lines.index("~\n", second_index_start)
+        except ValueError:
+            second_index_end = len(lines) - 1
         first_list = lines[first_index_start + 1:first_index_end]  # take only the relevant lines from the list
         second_list = lines[second_index_start + 1:second_index_end]
         self.compare(second_list, first_list, self.time1 + " -> " + self.time2)
 
     # find the index of the relevant time in the list
-    def find_index(self, seconds, lines):
+    def find_index(self, seconds, lines, date):
         for i in range(len(lines)):
             if lines[i][0] == "$":
-                curr_time = int(lines[i][INDEX_SECONDS:INDEX_SECONDS + 2]) + int(lines[i][INDEX_MIN:INDEX_MIN + 2] * 60) + int(lines[i][INDEX_HOURS:INDEX_HOURS + 2] * 3600)
-                if curr_time - self.my_time <= seconds <= curr_time + self.my_time:
+                curr_time = int(lines[i][INDEX_SECONDS:INDEX_SECONDS + 2]) + int(lines[i][INDEX_MIN:INDEX_MIN + 2]) * 60 + int(lines[i][INDEX_HOURS:INDEX_HOURS + 2]) * 3600
+                if (curr_time - self.my_time) <= seconds <= (curr_time + self.my_time) and lines[i][:INDEX_HOURS] == date[:INDEX_HOURS]:
                     return i
         return -1
 

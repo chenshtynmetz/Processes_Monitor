@@ -11,7 +11,7 @@ class Monitor:
         self.serviceList = "serviceList.txt"
         self.status_log = "Status_Log.txt"
         self.flag = 1
-        self.monitoring()
+
 
     # this function monitor the active processes and write them to file
     def monitoring(self):
@@ -29,7 +29,7 @@ class Monitor:
                 self.compare(curr_proc, prev_proc, curr_time)
                 file.write(curr_time)
                 file.write(curr_proc)
-                file.write("~\n")
+                file.write("\n~\n")
                 time.sleep(float(self.my_time))
 
     # this function check if something changes
