@@ -17,17 +17,18 @@ class Manual:
         self.system = platform.system()
         self.serviceList = "serviceList.txt"
 
-    def monitoring(self):
-        seconds1 = int(self.time1[INDEX_SECONDS:INDEX_SECONDS + 2]) + int(self.time1[INDEX_MIN:INDEX_MIN + 2]) * 60 + int(self.time1[INDEX_HOURS:INDEX_HOURS + 2]) * 3600  # get the time in seconds
-        seconds2 = int(self.time2[INDEX_SECONDS:INDEX_SECONDS + 2]) + int(self.time2[INDEX_MIN:INDEX_MIN + 2]) * 60 + int(self.time2[INDEX_HOURS:INDEX_HOURS + 2]) * 3600
+    def monitoring(self, results):
+        seconds1 = int(self.time1[INDEX_SECONDS:INDEX_SECONDS + 2]) + int(
+            self.time1[INDEX_MIN:INDEX_MIN + 2]) * 60 + int(
+            self.time1[INDEX_HOURS:INDEX_HOURS + 2]) * 3600  # get the time in seconds
+        seconds2 = int(self.time2[INDEX_SECONDS:INDEX_SECONDS + 2]) + int(
+            self.time2[INDEX_MIN:INDEX_MIN + 2]) * 60 + int(self.time2[INDEX_HOURS:INDEX_HOURS + 2]) * 3600
         with open(self.serviceList, "r") as f:
             lines = f.readlines()
-        # print(lines)
         first_index_start = self.find_index(seconds1, lines, self.time1)
         second_index_start = self.find_index(seconds2, lines, self.time2)
-        # print(lines[first_index_start])
-        # print(lines[second_index_start])
         if first_index_start == -1 or second_index_start == -1:
+            results.append("can't find time")
             print("can't find time")
             return
         first_index_end = lines.index("~\n", first_index_start)
@@ -37,14 +38,17 @@ class Manual:
             second_index_end = len(lines) - 1
         first_list = lines[first_index_start + 1:first_index_end]  # take only the relevant lines from the list
         second_list = lines[second_index_start + 1:second_index_end]
-        self.compare(second_list, first_list, self.time1 + " -> " + self.time2)
+        results = self.compare(second_list, first_list, self.time1 + " -> " + self.time2)
 
     # find the index of the relevant time in the list
     def find_index(self, seconds, lines, date):
         for i in range(len(lines)):
             if lines[i][0] == "$":
-                curr_time = int(lines[i][INDEX_SECONDS:INDEX_SECONDS + 2]) + int(lines[i][INDEX_MIN:INDEX_MIN + 2]) * 60 + int(lines[i][INDEX_HOURS:INDEX_HOURS + 2]) * 3600
-                if (curr_time - self.my_time) <= seconds <= (curr_time + self.my_time) and lines[i][:INDEX_HOURS] == date[:INDEX_HOURS]:
+                curr_time = int(lines[i][INDEX_SECONDS:INDEX_SECONDS + 2]) + int(
+                    lines[i][INDEX_MIN:INDEX_MIN + 2]) * 60 + int(lines[i][INDEX_HOURS:INDEX_HOURS + 2]) * 3600
+                if (curr_time - self.my_time) <= seconds <= (curr_time + self.my_time) and lines[i][
+                                                                                           :INDEX_HOURS] == date[
+                                                                                                            :INDEX_HOURS]:
                     return i
         return -1
 
@@ -62,10 +66,14 @@ class Manual:
                 prev_id_list.append(prev_list[i][PID_START_L:PID_END_L])
             for i in range(3, len(curr_list)):
                 curr_id_list.append(curr_list[i][PID_START_L:PID_END_L])  # get process by ID
-        print('\n' + curr_time + '\n')
+        ans = ['\n' + curr_time + '\n']
+        # print('\n' + curr_time + '\n')
         for i in range(3, len(prev_list)):
             if prev_id_list[i] not in curr_id_list:
-                print("stopped:" + '\t' + prev_list[i] + '\n')
+                ans.append("stopped:" + '\t' + prev_list[i] + '\n')
+                # print("stopped:" + '\t' + prev_list[i] + '\n')
         for i in range(3, len(curr_list)):
             if curr_id_list[i] not in prev_id_list:
-                print("started:" + '\t' + curr_list[i] + '\n')
+                ans.append("started:" + '\t' + curr_list[i] + '\n')
+                # print("started:" + '\t' + curr_list[i] + '\n')
+        return ans

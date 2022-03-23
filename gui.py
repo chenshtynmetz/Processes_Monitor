@@ -1,13 +1,13 @@
+import os
+import sys
 import tkinter.simpledialog
 from tkinter import *
 from tkinter import ttk
 import tkinter as tk
-from tkinter.ttk import Combobox
 from monitor import Monitor
-from tkinter import messagebox
 from manual_mode import Manual
 from threading import Thread
-
+import tkinter.scrolledtext
 
 
 class Gui:
@@ -19,22 +19,41 @@ class Gui:
         self.frm = ttk.Frame(self.root, padding=10)
         self.frm.grid()
         self.flag = 1
-        # self.monitor
         self.my_time = 0
         self.time1 = ""
         self.time2 = ""
-        # self. pw = ttk.Labelframe(self.frm, padding=10).grid(colmun=4, row=20)
         ttk.Button(self.frm, text="monitor mode", command=self.monitor_mode).grid(column=1, row=0)
         # self.stop_button = ttk.Button(self.frm, text="stop monitor").grid(column=3, row=0)
         ttk.Button(self.frm, text="manual_mode", command=self.enter_time).grid(column=1, row=3)
+        self.txt_area = tkinter.scrolledtext.ScrolledText(self.frm, wrap=tk.WORD, width=70, heigh=9, font=("ariel", 11))
+        self.txt_area.grid(column=20, pady=10, padx=10)
+        self.txt_area.focus()
+        ttk.Label(self.root, text="manual mode:", font=("ariel", 12), foreground="black").grid(column=0, row=0)
+        self.txt_area2 = tkinter.scrolledtext.ScrolledText(self.frm, wrap=tk.WORD, width=70, heigh=10,
+                                                           font=("ariel", 11))
+        self.txt_area2.grid(column=20, pady=30, padx=10)
+        self.txt_area2.focus()
         self.root.mainloop()
 
     def monitor_mode(self):
         self.my_time = tkinter.simpledialog.askfloat("set time", "please enter period of time in seconds:",
                                                      parent=self.root)
         monitor = Monitor(self.my_time)
-        # self.stop_button
         Thread(target=monitor.monitoring).start()
+        Thread(target=self.write_changes, args=[monitor]).start()
+        self.root.protocol("WM_DELETE_WINDOW", lambda: [monitor.exit_monitor(), self.exit_program()])
+
+    def exit_program(self):
+        self.root.destroy()
+        exit(0)
+
+    def write_changes(self, monitor):
+        prev_line = ""
+        while True:
+            if monitor.current_change != prev_line:
+                prev_line = monitor.current_change
+                self.txt_area.insert('end', monitor.current_change)
+                self.txt_area.yview('end')
 
     def manual_mode(self, year, year2, month, month2, day, day2, hour, hour2, minute, minute2, sec, sec2):
         self.time1 += "$" + year.get() + "-"
@@ -62,7 +81,13 @@ class Gui:
         print(self.time1)
         print(self.time2)
         manual = Manual(self.time1, self.time2, self.my_time)
-        Thread(target=manual.monitoring).start()
+        results = []
+        Thread(target=manual.monitoring, args=[results]).start()
+        while True:
+            if len(results) >= 1:
+                self.txt_area2.insert('end', str(results))
+                self.txt_area2.yview('end')
+                break
 
     def enter_time(self):
         man_root = Tk()
@@ -95,7 +120,6 @@ class Gui:
         secondes = [i for i in range(0, 60)]
         sec = StringVar(man_root)
         w = OptionMenu(man_root, sec, *secondes).grid(column=7, row=22)
-        ##
         ttk.Label(man_root, text="please enter the second time:").grid(column=1, row=30)
         ttk.Label(man_root, text="year:").grid(column=1, row=38)
         year2 = StringVar(man_root)
@@ -115,32 +139,12 @@ class Gui:
         ttk.Label(man_root, text="second:").grid(column=7, row=48)
         sec2 = StringVar(man_root)
         w = OptionMenu(man_root, sec2, *secondes).grid(column=7, row=52)
-        ttk.Button(man_frm, text="OK", command=lambda: [man_root.destroy(), self.manual_mode(year, year2, month, month2, day, day2, hour, hour2, minute, minute2, sec, sec2)]).grid(column=15, row=60)
+        ttk.Button(man_frm, text="OK", command=lambda: [man_root.destroy(),
+                                                        self.manual_mode(year, year2, month, month2, day, day2, hour,
+                                                                         hour2, minute, minute2, sec, sec2)]).grid(
+            column=15, row=60)
         man_root.mainloop()
-        # self.time1 += "$" + year.get() + "-"
-        # mon_str = "0" + month.get() if (len(month.get()) == 1) else month.get()
-        # self.time1 += mon_str + "-"
-        # day_str = "0" + day.get() if (len(day.get()) == 1) else day.get()
-        # self.time1 += day_str + " "
-        # hour_str = "0" + hour.get() if (len(hour.get()) == 1) else hour.get()
-        # self.time1 += hour_str + ":"
-        # min_str = "0" + minute.get() if (len(minute.get()) == 1) else minute.get()
-        # self.time1 += min_str + ":"
-        # sec_str = "0" + sec.get() if (len(sec.get()) == 1) else sec.get()
-        # self.time1 += sec_str
-        # # self.flag = self.flag + 1
-        # self.time2 += "$" + year2.get() + "-"
-        # mon_str2 = "0" + month2.get() if (len(month2.get()) == 1) else month2.get()
-        # self.time2 += mon_str2 + "-"
-        # day_str2 = "0" + day2.get() if (len(day2.get()) == 1) else day2.get()
-        # self.time2 += day_str2 + " "
-        # hour_str2 = "0" + hour2.get() if (len(hour2.get()) == 1) else hour2.get()
-        # self.time2 += hour_str2 + ":"
-        # min_str2 = "0" + minute2.get() if (len(minute2.get()) == 1) else minute2.get()
-        # self.time2 += min_str2 + ":"
-        # sec_str2 = "0" + sec2.get() if (len(sec2.get()) == 1) else sec2.get()
-        # self.time2 += sec_str2
-        # self.manual_mode()
+
 
 if __name__ == '__main__':
     Gui()

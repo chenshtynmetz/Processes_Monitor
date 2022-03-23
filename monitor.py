@@ -11,11 +11,23 @@ class Monitor:
         self.serviceList = "serviceList.txt"
         self.status_log = "Status_Log.txt"
         self.flag = 1
-
+        self.current_change = ""
 
     # this function monitor the active processes and write them to file
     def monitoring(self):
         curr_proc = ""
+        try:
+            f = open(self.serviceList)
+            f.close()
+            os.remove(self.serviceList)
+        except IOError:
+            pass
+        try:
+            f = open(self.status_log)
+            f.close()
+            os.remove(self.status_log)
+        except IOError:
+            pass
         with open(self.serviceList, "a") as file:
             while True:
                 if self.flag == 0:
@@ -50,16 +62,18 @@ class Monitor:
                 curr_id_list.append(curr_list[i][8:16])  # get process by ID
         with open(self.status_log, "a") as file:  # write the differences between the files
             file.write('\n' + curr_time + '\n')
+            self.current_change = '\n' + curr_time + '\n'
             print('\n' + curr_time + '\n')
             for i in range(3, len(prev_list)):
                 if prev_id_list[i] not in curr_id_list:
                     file.write("stopped:" + '\t' + prev_list[i] + '\n')
+                    self.current_change = "stopped:" + '\t' + prev_list[i] + '\n'
                     print("stopped:" + '\t' + prev_list[i] + '\n')
             for i in range(3, len(curr_list)):
                 if curr_id_list[i] not in prev_id_list:
                     file.write("started:" + '\t' + curr_list[i] + '\n')
+                    self.current_change = "started:" + '\t' + curr_list[i] + '\n'
                     print("started:" + '\t' + curr_list[i] + '\n')
 
     def exit_monitor(self):
         self.flag = 0
-
