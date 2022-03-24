@@ -1,5 +1,3 @@
-import os
-import sys
 import tkinter.simpledialog
 from tkinter import *
 from tkinter import ttk
@@ -10,6 +8,7 @@ from threading import Thread
 import tkinter.scrolledtext
 
 
+# this is the main class that activate the GUI
 class Gui:
     def __init__(self):
         self.root = Tk()
@@ -23,7 +22,6 @@ class Gui:
         self.time1 = ""
         self.time2 = ""
         ttk.Button(self.frm, text="monitor mode", command=self.monitor_mode).grid(column=1, row=0)
-        # self.stop_button = ttk.Button(self.frm, text="stop monitor").grid(column=3, row=0)
         ttk.Button(self.frm, text="manual_mode", command=self.enter_time).grid(column=1, row=3)
         self.txt_area = tkinter.scrolledtext.ScrolledText(self.frm, wrap=tk.WORD, width=70, heigh=9, font=("ariel", 11))
         self.txt_area.grid(column=20, pady=10, padx=10)
@@ -35,6 +33,7 @@ class Gui:
         self.txt_area2.focus()
         self.root.mainloop()
 
+    # this function activate the monitor mode
     def monitor_mode(self):
         self.my_time = tkinter.simpledialog.askfloat("set time", "please enter period of time in seconds:",
                                                      parent=self.root)
@@ -43,10 +42,12 @@ class Gui:
         Thread(target=self.write_changes, args=[monitor]).start()
         self.root.protocol("WM_DELETE_WINDOW", lambda: [monitor.exit_monitor(), self.exit_program()])
 
+    # this function exit from the program
     def exit_program(self):
         self.root.destroy()
         exit(0)
 
+    # this function write on the screen
     def write_changes(self, monitor):
         prev_line = ""
         while True:
@@ -55,6 +56,7 @@ class Gui:
                 self.txt_area.insert('end', monitor.current_change)
                 self.txt_area.yview('end')
 
+    # this function activate the manual mode
     def manual_mode(self, year, year2, month, month2, day, day2, hour, hour2, minute, minute2, sec, sec2):
         self.time1 += "$" + year.get() + "-"
         mon_str = "0" + month.get() if (len(month.get()) == 1) else month.get()
@@ -80,15 +82,17 @@ class Gui:
         self.time2 += sec_str2
         print(self.time1)
         print(self.time2)
-        manual = Manual(self.time1, self.time2, self.my_time)
-        results = []
-        Thread(target=manual.monitoring, args=[results]).start()
+        manual = Manual(self.time1, self.time2)
+        # results = []
+        Thread(target=manual.monitoring).start()
         while True:
-            if len(results) >= 1:
-                self.txt_area2.insert('end', str(results))
+            # print(self.results)
+            if len(manual.results) >= 1:
+                self.txt_area2.insert('end', str(manual.results))
                 self.txt_area2.yview('end')
                 break
 
+    # this function get from the user 2 dates to the manual mode
     def enter_time(self):
         man_root = Tk()
         man_root.title("set date")
@@ -97,7 +101,7 @@ class Gui:
         man_frm.grid()
         ttk.Label(man_root, text="please enter the first time:").grid(column=1, row=0)
         ttk.Label(man_root, text="year:").grid(column=1, row=8)
-        years = [i for i in range(2010, 2023)]
+        years = [i for i in range(2010, 2031)]
         year = StringVar(man_root)
         w = OptionMenu(man_root, year, *years).grid(column=1, row=12)
         ttk.Label(man_root, text="month:").grid(column=4, row=8)
