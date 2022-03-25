@@ -54,7 +54,6 @@ class Manual:
     # find the index of the relevant time in the list
     def find_index(self, seconds, lines, date):
         print("\n" + str(seconds) + "\n")
-        # print(str(self.my_time)+"\n")
         for i in range(len(lines)):
             if lines[i][0] == "$":
                 curr_time = int(lines[i][INDEX_SECONDS:INDEX_SECONDS + 2]) + int(
@@ -82,13 +81,10 @@ class Manual:
             for i in range(3, len(curr_list)):
                 curr_id_list.append(curr_list[i][PID_START_L:PID_END_L])  # get process by ID
         ans = ['\n' + curr_time + '\n']
-        # print('\n' + curr_time + '\n')
         for i in range(3, len(prev_list)):
             if prev_id_list[i] not in curr_id_list:
                 ans += "stopped:" + '\t' + prev_list[i] + '\n'
-                # print("stopped:" + '\t' + prev_list[i] + '\n')
         for i in range(3, len(curr_list)):
             if curr_id_list[i] not in prev_id_list:
                 ans += "started:" + '\t' + curr_list[i] + '\n'
-                # print("started:" + '\t' + curr_list[i] + '\n')
         return ans
